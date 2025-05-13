@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  couchdb:
+    image: couchdb:latest
+    container_name: couchdb
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin_password
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+
+  backup:
+    image: busybox
+    container_name: couchdb_backup
+    volumes:
+      - couchdb_data:/data:ro
+      - ./backups:/backups
+    entrypoint: /bin/sh
+    command: -c "tar czf /backups/couchdb_backup_$$(date +%Y%m%d_%H%M%S).tar.gz -C /data ."
+    profiles: ["backup"]
+
+volumes:
+  couchdb_data:
+    driver: local
